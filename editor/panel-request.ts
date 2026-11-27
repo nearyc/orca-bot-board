@@ -35,7 +35,7 @@ function reloadAfterRefusal() {
   } catch {
     return false
   }
-  notice('Plugin updated, reloading…')
+  notice('插件已更新，正在重新加载…')
   return true
 }
 
@@ -46,8 +46,8 @@ export class PanelError extends Error {
   ) {
     super(
       reloading
-        ? 'Plugin updated, reloading…'
-        : [rejection.name, rejection.code, rejection.message].filter(Boolean).join(' · '),
+        ? '插件已更新，正在重新加载…'
+        : '看板操作失败。详情：' + [rejection.name, rejection.code, rejection.message].filter(Boolean).join(' · '),
     )
   }
 }

@@ -2,8 +2,8 @@ import type { PullRequest, IssueRef } from './model'
 
 export const mergeMethods = ['squash', 'merge', 'rebase'] as const
 export type MergeMethod = (typeof mergeMethods)[number]
-export const methodLabels = { squash: 'Squash', merge: 'Merge commit', rebase: 'Rebase' }
-export const shortMethodLabels = { ...methodLabels, merge: 'Merge' }
+export const methodLabels = { squash: '压缩合并', merge: '创建合并提交', rebase: '变基合并' }
+export const shortMethodLabels = { ...methodLabels, merge: '普通合并' }
 export type MergePreferences = {
   mergeMethod: MergeMethod
   botName: string
@@ -16,12 +16,12 @@ export type MergePreferences = {
 export const checksFailed = (checks: string | null) => checks === 'FAILURE' || checks === 'ERROR'
 export function checksLabel(checks: string | null) {
   if (!checks) return ''
-  if (checks === 'SUCCESS') return 'Checks passed'
-  return checksFailed(checks) ? 'Checks failed' : 'Checks running'
+  if (checks === 'SUCCESS') return '检查已通过'
+  return checksFailed(checks) ? '检查失败' : '检查进行中'
 }
 export function mergeableLabel(state: string) {
-  if (state === 'MERGEABLE') return 'No conflicts'
-  return state === 'CONFLICTING' ? 'Conflicts' : 'Checking for conflicts'
+  if (state === 'MERGEABLE') return '无冲突'
+  return state === 'CONFLICTING' ? '有冲突' : '正在检查冲突'
 }
 export type ConfirmedMerge = {
   warnings: Warning[]
@@ -59,18 +59,21 @@ export function assessMerge(pr: PullRequest, repo: RepositoryFacts) {
   const blockers: string[] = [],
     warnings: Warning[] = []
   const methods = mergeMethods.filter((m) => repo.methods.includes(m))
-  if (pr.mergeable === 'CONFLICTING') blockers.push('Resolve the conflicts on GitHub and refresh.')
-  if (!repo.push) blockers.push('Push permission required. Ask a repository maintainer to merge.')
-  if (!methods.length) blockers.push('No merge method is enabled. Contact a repository maintainer.')
-  if (pr.draft) warnings.push({ text: 'Draft · It will be marked ready first.' })
+  if (pr.mergeable === 'CONFLICTING') blockers.push('请先在 GitHub 上解决冲突，再刷新看板。')
+  if (!repo.push) blockers.push('需要推送权限。请联系仓库维护者合并。')
+  if (!methods.length) blockers.push('仓库未启用任何合并方式。请联系仓库维护者。')
+  if (pr.draft) warnings.push({ text: '这是草稿，将先标记为可审查。' })
   if (pr.base !== repo.defaultBranch)
-    warnings.push({ text: 'Targets ' + pr.base + ' instead of ' + repo.defaultBranch + '.' })
-  if (!pr.checks) warnings.push({ text: 'No checks ran.' })
-  else if (pr.checks !== 'SUCCESS') warnings.push({ text: checksLabel(pr.checks) + '. Review the checks on GitHub.' })
-  if (pr.additions + pr.deletions >= largeChangeLines)
-    warnings.push({ text: 'Very large change. Review the diff before merging.' })
-  if (/\b(?:do not merge|don['’]?t merge|not merge|wip|test only)\b|\[no merge\]/i.test(pr.title))
-    warnings.push({ text: 'The title says not to merge. Verify the author’s intent before continuing.', danger: true })
+    warnings.push({ text: `目标分支为 ${pr.base}，不是默认分支 ${repo.defaultBranch}。` })
+  if (!pr.checks) warnings.push({ text: '尚未运行任何检查。' })
+  else if (pr.checks !== 'SUCCESS') warnings.push({ text: checksLabel(pr.checks) + '。请在 GitHub 上查看检查详情。' })
+  if (pr.additions + pr.deletions >= largeChangeLines) warnings.push({ text: '改动量很大，请先查看差异再合并。' })
+  if (
+    /\b(?:do not merge|don['’]?t merge|not merge|wip|test only)\b|\[no merge\]|不要合并|请勿合并|仅供测试/i.test(
+      pr.title,
+    )
+  )
+    warnings.push({ text: '标题提示不要合并，请先确认作者的意图。', danger: true })
   return { canMerge: !blockers.length, blockers, warnings, methods, defaultMethod: methods[0] }
 }
 

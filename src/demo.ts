@@ -13,15 +13,14 @@ export function demoBoard(state: string | null = null) {
     'local',
   )
   const entries = [
-    ['needs_you', 'Choose the orchard sample', 'Which collection should we use for the first run?'],
-    ['in_progress', 'Calibrate the field sensors', 'Verifying readings against the baseline.'],
-    ['waiting', 'Review the irrigation schedule', 'Waiting for the field report.'],
-    ['needs_you', 'Confirm the sampling interval', 'Should the sampler run every hour?'],
-    ['in_progress', 'Prepare the seedling inventory', 'Imported the greenhouse records.'],
+    ['needs_you', '选择果园采样方案', '第一轮应使用哪组样本？'],
+    ['in_progress', '校准田间传感器', '正在对照基准验证读数。'],
+    ['waiting', '审查灌溉计划', '正在等待现场报告。'],
+    ['needs_you', '确认采样间隔', '采样器应每小时运行一次吗？'],
+    ['in_progress', '整理幼苗清单', '已导入温室记录。'],
   ]
-  entries.push(['planned', 'Plan the next soil survey', ''])
-  if (state !== 'empty')
-    entries.push(['done', 'Collect the spring readings', ''], ['canceled', 'Retire the old sampling route', ''])
+  entries.push(['planned', '规划下一次土壤调查', ''])
+  if (state !== 'empty') entries.push(['done', '收集春季读数', ''], ['canceled', '停用旧采样路线', ''])
   const demoItems = entries.flatMap(([status, title, subject], n) =>
     items(
       {
@@ -30,22 +29,19 @@ export function demoBoard(state: string | null = null) {
             number: n + 1,
             status,
             title,
-            description:
-              n < 2
-                ? 'Review orchard/sample#' + (n + 1) + ' before collecting the first batch.'
-                : 'Prepare the seasonal field survey.',
-            doneMeans: 'The field notes are ready for review.',
+            description: n < 2 ? `收集第一批样本前，请查看 orchard/sample#${n + 1}。` : '准备季节性田间调查。',
+            doneMeans: '田间记录已整理完毕，可供审查。',
             closedAt: status === 'done' || status === 'canceled' ? Date.now() : undefined,
             lastActivityAt: Date.now() - (n + 1) * 3600000,
-            chat: { title: 'Field survey' },
-            question: { text: subject, options: ['Use spring readings', 'Use autumn readings'] },
+            chat: { title: '田间调查' },
+            question: { text: subject, options: ['使用春季读数', '使用秋季读数'] },
             wait: status === 'waiting' ? { text: subject } : null,
             links: [
               {
                 kind: 'dispatch',
-                title: 'Field notebook',
+                title: '田间笔记',
                 state: status === 'in_progress' ? 'working' : 'done',
-                report: { subject, body: 'The first batch has been recorded.' },
+                report: { subject, body: '已记录第一批样本。' },
               },
             ],
           },
@@ -57,7 +53,7 @@ export function demoBoard(state: string | null = null) {
   )
   const pr = pullRequest({
     number: 1,
-    title: 'Sample marker',
+    title: '采样标记',
     url: 'https://github.com/orchard/sample/pull/1',
     isDraft: false,
     isCrossRepository: false,
@@ -73,7 +69,7 @@ export function demoBoard(state: string | null = null) {
     closingIssuesReferences: { nodes: [] },
     commits: { nodes: [] },
   })
-  pr.title = 'Add collection markers to the field map'
+  pr.title = '在田间地图上添加采样点'
   pr.checks = 'SUCCESS'
   pr.sha = 'a'.repeat(40)
   if (['warnings', 'danger', 'progress'].includes(state || '')) {
@@ -82,7 +78,7 @@ export function demoBoard(state: string | null = null) {
     pr.base = 'spring-survey'
     pr.additions = 5012
   }
-  if (state === 'danger') pr.title = 'Test only · do not merge field readings'
+  if (state === 'danger') pr.title = '仅供测试 · 请勿合并田间读数'
   if (state === 'conflict') pr.mergeable = 'CONFLICTING'
   pr.updated = new Date(Date.now() - 2300000).toISOString()
   const data: Snapshot = {
@@ -90,7 +86,7 @@ export function demoBoard(state: string | null = null) {
     computers: [
       {
         key: 'local',
-        name: 'Field station',
+        name: '田间观测站',
         source: { ok: true, value: { bots: list, items: demoItems, workspaces: [] } },
       },
     ],
@@ -100,7 +96,7 @@ export function demoBoard(state: string | null = null) {
         ...pr,
         number: 2,
         url: pr.url.replace(/1$/, '2'),
-        title: 'Update watering calendar',
+        title: '更新浇水日程',
         head: 'calendar',
         base: pr.head,
         draft: true,
@@ -128,11 +124,7 @@ export function demoBoard(state: string | null = null) {
     focus: false,
   }
   if (state !== 'empty') {
-    for (const [number, title] of [
-      'Record the summer survey',
-      'Import historical readings',
-      'Resolve survey boundaries',
-    ].entries()) {
+    for (const [number, title] of ['记录夏季调查结果', '导入历史读数', '修正调查范围'].entries()) {
       const n = number + 3
       data.prs.push({
         ...pr,
@@ -148,19 +140,19 @@ export function demoBoard(state: string | null = null) {
       })
     }
     const titles = [
-      'Document the field survey collection schedule and include calibration notes for every sensor used in the spring sampling',
-      'Preserve literal <details> in field notes',
-      'Add the orchard sampling schedule',
-      'Display water levels by plot',
-      'Validate the station readings',
-      'Summarize daily measurements',
-      'Track rainfall across the north field',
-      'Sort field stations by distance',
+      '记录田间调查的采样安排，并补充春季采样所用传感器的校准说明',
+      '在田间笔记中保留 <details> 原文',
+      '添加果园采样计划',
+      '按地块显示水位',
+      '验证观测站的读数',
+      '汇总每日测量结果',
+      '跟踪北区降雨量',
+      '按距离排列观测站',
     ]
     for (let i = 0; i < (state === 'large' ? 120 : state === 'queue50' ? 50 : titles.length); i++) {
       const number = (state === 'large' ? 200 : 10) + i,
         head = 'station-' + number
-      const title = titles[i] ?? 'Update readings for plot ' + (i + 1)
+      const title = titles[i] ?? '更新地块读数 #' + (i + 1)
       data.prs.push({
         ...pr,
         number,
@@ -190,7 +182,7 @@ export function demoBoard(state: string | null = null) {
       data.merged.push({
         ...pr,
         number: 100 + i,
-        title: 'Record observations for plot ' + (i + 1),
+        title: '记录地块观察结果 #' + (i + 1),
         url: pr.url.replace(/1$/, String(100 + i)),
         mergedAt: new Date().toISOString(),
       })
@@ -198,12 +190,12 @@ export function demoBoard(state: string | null = null) {
       const roster = data.computers[0]!.source
       if (roster.ok) {
         for (let i = 0; i < 30; i++)
-          roster.value.bots.push({ ...list[0]!, name: 'Field bot ' + (i + 1), id: 'field-' + i })
+          roster.value.bots.push({ ...list[0]!, name: '田间机器人 ' + (i + 1), id: 'field-' + i })
         roster.value.workspaces.push({
           computer: 'local',
           id: 'history',
           name: 'history',
-          bot: 'Field bot 30',
+          bot: '田间机器人 30',
           repo: pr.repo,
           remote: null,
           path: null,
@@ -217,7 +209,7 @@ export function demoBoard(state: string | null = null) {
     data.merged.push({
       ...pr,
       number: 6,
-      title: 'Publish spring observations',
+      title: '发布春季观测结果',
       url: pr.url.replace(/1$/, '6'),
       mergedAt: new Date().toISOString(),
     })
@@ -231,25 +223,25 @@ export function demoBoard(state: string | null = null) {
         station.source.value.bots[0]!.warning = {
           ok: false,
           command: 'orca bot work list',
-          message: 'Work list unavailable.',
-          next: 'Refresh to retry.',
+          message: '执行任务列表不可用。',
+          next: '请刷新后重试。',
         }
     }
     data.computers.unshift({
       key: 'local',
-      name: 'This computer',
+      name: '本机',
       source: { ok: true, value: { bots: [], items: [], workspaces: [] } },
     })
   }
   if (state === 'unreachable')
     data.computers.push({
       key: 'other',
-      name: 'Greenhouse',
+      name: '温室',
       source: {
         ok: false,
         command: 'orca bot list',
-        message: 'Connection timed out.',
-        next: 'Reconnect the computer and refresh.',
+        message: '连接超时。',
+        next: '请重新连接设备后刷新看板。',
       },
     })
   if (state === 'signed-out') {
@@ -257,12 +249,12 @@ export function demoBoard(state: string | null = null) {
     data.sources.github = { status: 'failed', at: 0 }
     data.prsAt = 0
     data.total = 0
-    data.banner = 'GitHub is signed out. Run gh auth login and refresh.'
+    data.banner = 'GitHub 未登录。请运行 gh auth login 后刷新看板。'
     data.error = {
       ok: false,
       command: 'gh api user',
-      message: 'GitHub is signed out.',
-      next: 'Run gh auth login and refresh.',
+      message: 'GitHub 未登录。',
+      next: '请运行 gh auth login 后刷新看板。',
     }
   }
   return data
@@ -279,7 +271,7 @@ export async function demoMerge(
     progress({ key, step, state: 'running' })
     await new Promise((resolve) => setTimeout(resolve, 900))
     if (step === 'merge' && fail)
-      return { ok: false, command: 'Demo', message: 'Required status check "field survey" is pending.', next: '' }
+      return { ok: false, command: '演示', message: '必需的「田间调查」状态检查尚未完成。', next: '' }
     if (step === 'ready') onReady()
     progress({ key, step, state: 'done' })
   }

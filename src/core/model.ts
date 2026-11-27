@@ -5,7 +5,7 @@ export interface SourceState {
 export type Failure = {
   status?: number
   detail?: string
-  kind?: 'timeout' | 'network'
+  kind?: 'timeout' | 'network' | 'missing-executable' | 'bot-session'
   timeoutSeconds?: number
   resetAt?: number
   rateLimited?: boolean

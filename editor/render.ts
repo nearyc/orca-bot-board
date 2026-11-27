@@ -38,7 +38,7 @@ export function view(
   }
   const actions = itemActions(store, redraw)
   let sleeping: Item[] = []
-  const snoozed = button('Snoozed 0', () => actions.showList(sleeping), 'chip')
+  const snoozed = button('已暂缓 0', () => actions.showList(sleeping), 'chip')
   const gear = settings(
     prefs,
     () => {
@@ -102,7 +102,7 @@ export function view(
     summary = el('summary'),
     unmapped = el('div')
   group.append(summary, unmapped)
-  const drafts = el('h3', 'Draft')
+  const drafts = el('h3', '草稿')
   function focus() {
     columns.get('needs_you')?.focus()
   }
@@ -140,7 +140,7 @@ export function view(
     const board = buildBoard(data.computers, data.prs, saved.current, data.merged)
     sleeping = board.columns.flatMap((c) => c.items.filter(actions.sleep))
     for (const c of board.columns) c.items = c.items.filter((i) => !actions.sleep(i))
-    snoozed.textContent = 'Snoozed ' + sleeping.length
+    snoozed.textContent = '已暂缓 ' + sleeping.length
     actions.syncList(sleeping)
     const prs = [...board.ready, ...board.draft, ...board.unmapped],
       trees = data.computers.flatMap((c) => (c.source.ok ? c.source.value.workspaces : []))
@@ -218,7 +218,7 @@ export function view(
         node.replaceChildren()
         const by = isItem ? row : (row.items[0] ?? row.workspaces[0])
         node.classList.toggle('compact-card', prefs.compact)
-        node.title = prefs.compact ? (by?.bot ?? 'No bot') + ' · ' + row.title : ''
+        node.title = prefs.compact ? (by?.bot ?? '未分配机器人') + ' · ' + row.title : ''
         if (prefs.compact) {
           node.append(
             by ? badge(by.computer, by.bot) : el('span', '—', 'avatar'),
@@ -230,7 +230,7 @@ export function view(
         const meta = el('div', '', 'meta')
         if (by) meta.append(badge(by.computer, by.bot))
         meta.append(
-          el('small', by?.bot ?? 'No bot'),
+          el('small', by?.bot ?? '未分配机器人'),
           el('small', isItem ? '#' + row.number : shortRef(row), 'ref'),
           el('time', age(row.updated, true)),
         )
@@ -247,17 +247,11 @@ export function view(
             'bell',
           )
           toggle.append(icon('M4 17h16l-2-3V9a6 6 0 0 0-12 0v5zM10 20a2 2 0 0 0 4 0'))
-          toggle.setAttribute('aria-label', 'Notify me')
+          toggle.setAttribute('aria-label', '通知我')
           toggle.setAttribute('aria-pressed', String(ringing))
           meta.append(toggle)
           if (ringing && data.notificationsOff)
-            node.append(
-              el(
-                'small',
-                'Notifications for Orca are off. Turn them on in System Settings › Notifications › Orca.',
-                'bell-note',
-              ),
-            )
+            node.append(el('small', 'Orca 通知已关闭，请在系统通知设置中启用 Orca 通知。', 'bell-note'))
         }
         if (isItem) {
           if (closed || row.status === 'planned') node.append(el('mark', labels[row.status]))
@@ -269,7 +263,7 @@ export function view(
             },
             'more',
           )
-          more.setAttribute('aria-label', 'More')
+          more.setAttribute('aria-label', '更多操作')
           if (!closed) meta.append(more)
           const pending = actions.pending(row)
           if (pending) node.append(el('mark', pending))
@@ -287,10 +281,10 @@ export function view(
           stats.append(diff)
           if (check) stats.append(' · ', el('span', check, failed ? 'failed' : ''))
           node.append(stats)
-          if (merging) node.append(el('mark', 'Merging…', 'ready'))
+          if (merging) node.append(el('mark', '正在合并…', 'ready'))
           else if (row.mergeable === 'CONFLICTING') node.append(conflictPill())
         }
-        if (!isItem && row.behind) node.append(el('p', 'Behind ' + row.behind))
+        if (!isItem && row.behind) node.append(el('p', '依赖 ' + row.behind))
         appendCardLinks(links, cards, node, stats)
       }
       return node
@@ -313,7 +307,7 @@ export function view(
           nodes.push(...board.ready.map(card))
           if (board.draft.length) nodes.push(drafts, ...board.draft.map(card))
           if (board.unmapped.length || data.total > data.prs.length) {
-            summary.textContent = 'No bot · ' + board.unmapped.length + ' shown of ' + data.total + ' open'
+            summary.textContent = `未分配机器人 · 显示 ${board.unmapped.length} 条，共 ${data.total} 条未关闭`
             patch(unmapped, board.unmapped.map(card))
             nodes.push(group)
           }

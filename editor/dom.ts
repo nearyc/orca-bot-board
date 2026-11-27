@@ -1,5 +1,6 @@
 import { panelRequest } from './panel-request'
 import type { Failure } from '../src/core/model'
+import { statusLabels } from '../src/core/bells'
 function hideIds(text: string) {
   return text.replace(
     /\b(?:orca_session_id|session|folder|dispatch|workspace|bot|id):[^\s,)]+|\b(?:ctx|task|term|run|dispatch|session)_[\w-]+|\b[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}\b/gi,
@@ -7,7 +8,7 @@ function hideIds(text: string) {
   )
 }
 export function describeFailure(f: Pick<Failure, 'command' | 'message' | 'next'>) {
-  return hideIds([f.command, f.message, f.next].join(' · '))
+  return hideIds([f.next, `详情：${[f.command, f.message].filter(Boolean).join(' · ')}`].filter(Boolean).join(' '))
 }
 export function el<K extends keyof HTMLElementTagNameMap>(tag: K, text = '', className = '') {
   const node = document.createElement(tag)
@@ -37,28 +38,23 @@ export function notice(error: unknown) {
   noticeTimer = setTimeout(() => node.replaceChildren(), 6500)
 }
 export const labels = {
-  closed: 'Closed',
-  done: 'Completed',
-  canceled: 'Cancelled',
-  planned: 'Planned',
-  needs_you: 'Needs you',
-  in_progress: 'In progress',
-  waiting: 'Waiting',
-  prs: 'Pull requests',
-  merged: 'Merged',
+  ...statusLabels,
+  closed: '已关闭',
+  prs: '拉取请求',
+  merged: '已合并',
 }
 export function conflictPill() {
-  return el('mark', 'Conflict', 'conflict')
+  return el('mark', '有冲突', 'conflict')
 }
 export function prPill(pr: { draft: boolean; mergeable: string }) {
-  if (pr.draft) return el('mark', 'Draft', 'draft')
+  if (pr.draft) return el('mark', '草稿', 'draft')
   if (pr.mergeable === 'CONFLICTING') return conflictPill()
-  return el('mark', pr.mergeable === 'MERGEABLE' ? 'Ready to merge' : 'Ready for review', 'ready')
+  return el('mark', pr.mergeable === 'MERGEABLE' ? '可合并' : '待审查', 'ready')
 }
 export async function openExternal(url: string) {
-  if (new URL(url).protocol !== 'https:') throw Error('Invalid GitHub URL')
+  if (new URL(url).protocol !== 'https:') throw Error('GitHub 链接无效。')
   const result = await orca.shell?.openExternal(url)
-  if (!result?.opened) notice('GitHub did not open. Allow the link in Orca and try again.')
+  if (!result?.opened) notice('未能打开 GitHub，请在 Orca 中允许打开该链接后重试。')
 }
 export function external(label: string, url: string) {
   return button(label, () => openExternal(url))

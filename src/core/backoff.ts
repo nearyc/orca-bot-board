@@ -5,5 +5,5 @@ export function backoffDelay(consecutive: number) {
 }
 
 export function retryLabel(delay: number) {
-  return delay === 90000 ? 'in 90 seconds' : 'in ' + delay / 60000 + ' min'
+  return delay === 90000 ? '90 秒后' : `${delay / 60000} 分钟后`
 }

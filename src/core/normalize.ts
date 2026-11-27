@@ -81,8 +81,8 @@ export function unpairedComputers(
     warning: {
       ok: false,
       command: 'orca environment list',
-      message: group.name + ' is not available as a saved environment.',
-      next: 'Pair this computer to read its bot activity.',
+      message: `设备 ${group.name} 未保存为已配对环境。`,
+      next: '配对此设备后即可读取机器人活动。',
     },
     source: { ok: true, value: { bots: [...group.bots.values()], items: [], workspaces: [] } },
   }))

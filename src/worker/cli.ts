@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { constants } from 'node:fs'
-import { access } from 'node:fs/promises'
+import { access, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { delimiter, join } from 'node:path'
 import { promisify } from 'node:util'
@@ -16,25 +16,34 @@ const sessionKeys = [
 ]
 type Binary = 'orca' | 'gh'
 
-async function binaryPath(binary: Binary, configured: string): Promise<string> {
+class MissingExecutable extends Error {}
+
+// A leading slash alone still depends on the worker's current drive on Windows.
+const hasWindowsDrive = (path: string) => /^[a-z]:[\\/]/i.test(path)
+
+export async function binaryPath(binary: Binary, configured: string): Promise<string> {
+  const windows = process.platform === 'win32'
   const config = process.env.XDG_CONFIG_HOME || join(homedir(), '.config')
-  const dirs = [
-    ...(process.env.PATH || '').split(delimiter).filter(Boolean),
-    join(config, 'orca/cli/bin'),
-    join(config, 'orca/linux-orca-cli-shim'),
-    '/opt/homebrew/bin',
-    '/usr/local/bin',
-  ]
-  const paths = configured ? [configured] : dirs.map((dir) => join(dir, binary))
-  for (const path of paths) {
+  const installRoot = process.env[binary === 'orca' ? 'LOCALAPPDATA' : 'ProgramFiles']
+  const defaults = windows
+    ? installRoot && hasWindowsDrive(installRoot)
+      ? [join(installRoot, binary === 'orca' ? 'Programs/orca/resources/bin' : 'GitHub CLI')]
+      : []
+    : [join(config, 'orca/cli/bin'), join(config, 'orca/linux-orca-cli-shim'), '/opt/homebrew/bin', '/usr/local/bin']
+  const fromPath = (process.env.PATH || '').split(delimiter).filter(Boolean)
+  const dirs = windows ? fromPath.map((dir) => dir.trim().replace(/^"(.*)"$/, '$1')).filter(hasWindowsDrive) : fromPath
+  const name = windows ? binary + '.exe' : binary
+  const paths = configured ? [configured] : [...dirs, ...defaults].map((dir) => join(dir, name))
+  for (const path of new Set(paths)) {
     try {
+      if (!(await stat(path)).isFile()) continue
       await access(path, constants.X_OK)
       return path
     } catch {
       continue
     }
   }
-  throw new Error(`Cannot find executable ${binary}`)
+  throw new MissingExecutable(`找不到 ${name}。请在插件设置中填写可执行文件的完整路径。`)
 }
 
 export function commandLabel(binary: Binary, args: string[]) {
@@ -54,8 +63,9 @@ export async function runCli(
     return {
       ok: false,
       command,
-      message: 'The board is running inside a bot session.',
-      next: 'Open it from the Orca desktop app as yourself.',
+      kind: 'bot-session',
+      message: '看板正在机器人会话中运行。',
+      next: '请从自己的 Orca 桌面会话打开看板。',
     }
   }
   try {
@@ -70,9 +80,11 @@ export async function runCli(
     if (binary === 'gh') return { ok: true, value: json }
     if (json && typeof json === 'object' && 'ok' in json && json.ok === true && 'result' in json)
       return { ok: true, value: json.result }
-    throw new Error(envelopeMessage(json) || 'Invalid Orca response')
+    throw new Error(envelopeMessage(json) || 'Orca 返回了无法识别的响应。')
   } catch (error) {
-    let message = error instanceof Error ? error.message.split('\n').slice(-2).join(' ').trim() : 'Command failed'
+    if (error instanceof MissingExecutable)
+      return { ok: false, command, kind: 'missing-executable', message: error.message, next: '' }
+    let message = error instanceof Error ? error.message.split('\n').slice(-2).join(' ').trim() : '命令执行失败。'
     let detail: string | undefined
     const timedOut =
       error instanceof Error &&
@@ -152,9 +164,9 @@ export async function runCli(
       next:
         binary === 'gh'
           ? status === 401 || /not logged (?:in|into)|gh auth login/i.test(message)
-            ? 'Run gh auth login.'
-            : 'Check the GitHub connection and refresh.'
-          : 'Check the Orca path setting and computer connection, then refresh.',
+            ? '请运行 gh auth login 登录。'
+            : '请检查 GitHub 连接后刷新看板。'
+          : '请检查 Orca 路径和设备连接后刷新看板。',
     }
   }
 }

@@ -210,7 +210,7 @@ export default async function activate(orca: OrcaWorkerApi) {
       demo || sendBotMessage(await path('orcaPath'), data.computers, input, (message) => orca.log(message)),
   )
   orca.panels.handle('board.jump', async (input) =>
-    demo ? 'Demo chat selected.' : jump(orca, data.computers, await path('orcaPath'), input),
+    demo ? '已选择演示聊天。' : jump(orca, data.computers, await path('orcaPath'), input),
   )
   orca.panels.handle(
     'pr.close',
@@ -220,9 +220,9 @@ export default async function activate(orca: OrcaWorkerApi) {
       if (demo || !pr || busy(key) || data.error)
         return {
           ok: false as const,
-          command: 'Close PR',
-          message: demo ? 'Demo data is read-only.' : 'Pull request unavailable.',
-          next: 'Refresh the board.',
+          command: '关闭拉取请求',
+          message: demo ? '演示数据为只读。' : '拉取请求不可用。',
+          next: '请刷新看板。',
         }
       closingPrs.add(key)
       try {
@@ -255,9 +255,9 @@ export default async function activate(orca: OrcaWorkerApi) {
       )
         return {
           ok: false as const,
-          command: 'Merge',
-          message: 'Pull request unavailable, changed or already merging.',
-          next: 'Refresh the board and reopen the confirmation.',
+          command: '合并',
+          message: '拉取请求不可用、已更新或正在合并。',
+          next: '请刷新看板并重新打开确认窗口。',
         }
       data.running = [...(data.running ?? []), key]
       publish()
@@ -272,9 +272,9 @@ export default async function activate(orca: OrcaWorkerApi) {
         if (!assessment.canMerge || !assessment.methods.includes(input.method))
           return {
             ok: false as const,
-            command: 'Merge',
-            message: assessment.blockers.join(' ') || 'Method unavailable.',
-            next: 'Refresh and check the repository settings.',
+            command: '合并',
+            message: assessment.blockers.join(' ') || '此合并方式不可用。',
+            next: '请刷新看板并检查仓库设置。',
           }
         const progress = (e: Progress) => {
           setStep('merge')
@@ -306,8 +306,8 @@ export default async function activate(orca: OrcaWorkerApi) {
         return {
           ok: false as const,
           command: 'gh api pulls/files',
-          message: 'The pull request changed.',
-          next: 'Reopen its drawer.',
+          message: '此拉取请求已更新。',
+          next: '请重新打开详情。',
         }
       let json = fileCache.get(key)
       if (!json) {
@@ -326,14 +326,14 @@ export default async function activate(orca: OrcaWorkerApi) {
         await openBoard(orca, demo ? null : await path('orcaPath'))
         orca.panels.post('board.focus', null)
       } catch (error) {
-        const body = String(error) + ' · Reopen Bot Kanban Board from the command palette.'
+        const body = `请从命令面板重新打开机器人看板。详情：${error instanceof Error ? error.message : String(error)}`
         await orca.host.call('statusBar.update', {
           id: 'needs-you',
-          text: 'Board unavailable',
+          text: '看板不可用',
           tooltip: body,
           tone: 'danger',
         })
-        await orca.host.call('notifications.show', { title: 'Could not open Bot Kanban Board', body })
+        await orca.host.call('notifications.show', { title: '无法打开机器人看板', body })
       }
     })
   if (demo) return

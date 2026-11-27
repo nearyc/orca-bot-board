@@ -44,8 +44,8 @@ export function settings(saved: MergePreferences, update: () => void, computers:
       const panel = menu
       const head = el('div', '', 'ph')
       const close = button('✕', () => panel.close(true), 'x')
-      close.setAttribute('aria-label', 'Close settings')
-      head.append(el('b', 'Settings'), close)
+      close.setAttribute('aria-label', '关闭设置')
+      head.append(el('b', '设置'), close)
       panel.node.append(head)
       const group = (title: string) => {
         const sec = el('section', '', 'sec'),
@@ -80,7 +80,7 @@ export function settings(saved: MergePreferences, update: () => void, computers:
         return row(name, hint, input, true)
       }
       const limit = el('input')
-      const limitLabel = 'Merged pull requests shown'
+      const limitLabel = '显示已合并拉取请求的数量'
       Object.assign(limit, { type: 'number', min: '1', max: '50', value: String(saved.mergedLimit) })
       limit.setAttribute('aria-label', limitLabel)
       limit.onchange = () => {
@@ -88,11 +88,11 @@ export function settings(saved: MergePreferences, update: () => void, computers:
         limit.value = String(saved.mergedLimit)
         update()
       }
-      group('Display').append(
+      group('显示').append(
         row(limitLabel, '', limit),
-        toggle('compact', 'Compact cards', 'One line per card: bot, title, age.'),
+        toggle('compact', '紧凑卡片', '每张卡片只显示机器人、标题和时间。'),
       )
-      const merging = group('Merging'),
+      const merging = group('合并'),
         segment = el('div', '', 'segc'),
         thumb = el('span', '', 'thumb')
       segment.append(thumb)
@@ -116,14 +116,14 @@ export function settings(saved: MergePreferences, update: () => void, computers:
         segment.append(b)
       }
       merging.append(
-        row('Merge method', 'Preselected in the merge dialog.', segment),
+        row('合并方式', '在合并确认窗口中默认选中。', segment),
         toggle(
           'askBeforeMerging',
-          'Ask before merging',
-          'Off: clean pull requests merge in one step. Warnings and conflicts always ask.',
+          '合并前确认',
+          '关闭后，没有警告的拉取请求可直接合并；出现警告或冲突时仍会显示确认窗口。',
         ),
       )
-      const after = group('After a merge'),
+      const after = group('合并后'),
         reveal = el('div', '', 'reveal'),
         wrap = el('div')
       let list: ReturnType<typeof popover> | undefined
@@ -132,10 +132,7 @@ export function settings(saved: MergePreferences, update: () => void, computers:
         reveal.inert = !saved.tellBot
         list?.close()
       }
-      after.append(
-        toggle('tellBot', 'Tell a bot', 'One Orca message per merge, or one for a whole batch.', show),
-        reveal,
-      )
+      after.append(toggle('tellBot', '通知机器人', '单次或批量合并完成后，发送一条 Orca 消息。', show), reveal)
       const choices = computers().flatMap((c) =>
         c.source.ok
           ? c.source.value.bots.map((b) => ({
@@ -191,19 +188,16 @@ export function settings(saved: MergePreferences, update: () => void, computers:
       picker.setAttribute('aria-haspopup', 'listbox')
       function paint() {
         const choice = choices.find((c) => c.key === botKey(saved.computer, saved.botName))
-        picker.replaceChildren(...(choice ? [badge(choice.computer, choice.name), choice.label] : ['Choose a bot']))
+        picker.replaceChildren(...(choice ? [badge(choice.computer, choice.name), choice.label] : ['选择机器人']))
       }
       paint()
       show()
-      wrap.append(row('Which bot', '', picker))
+      wrap.append(row('接收通知的机器人', '', picker))
       reveal.append(wrap)
       panel.node.onscroll = positionPicker
       panel.node.addEventListener('dismiss', () => list?.close())
       const footer = el('div', '', 'pf')
-      footer.append(
-        el('span', 'Bot Kanban Board ' + version),
-        external('Who created this?', 'https://github.com/guilatrova'),
-      )
+      footer.append(el('span', '机器人看板 ' + version), external('关于作者', 'https://github.com/guilatrova'))
       panel.node.append(footer)
       panel.position()
       panel.node.style.left = 'auto'
@@ -211,7 +205,7 @@ export function settings(saved: MergePreferences, update: () => void, computers:
     },
     'ico',
   )
-  gear.setAttribute('aria-label', 'Settings')
+  gear.setAttribute('aria-label', '设置')
   gear.append(
     icon(
       'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 13.5l1.6 1.2-2 3.4-1.9-.7a7.6 7.6 0 0 1-2 1.2l-.3 2h-4l-.3-2a7.6 7.6 0 0 1-2-1.2l-1.9.7-2-3.4 1.6-1.2a7.7 7.7 0 0 1 0-3l-1.6-1.2 2-3.4 1.9.7a7.6 7.6 0 0 1 2-1.2l.3-2h4l.3 2a7.6 7.6 0 0 1 2 1.2l1.9-.7 2 3.4-1.6 1.2a7.7 7.7 0 0 1 0 3z',

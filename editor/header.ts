@@ -14,7 +14,7 @@ export function boardHeader(
   gear: HTMLButtonElement,
 ) {
   const controls = views(saved, update)
-  const demo = el('mark', 'Demo data')
+  const demo = el('mark', '演示数据')
   const header = el('header'),
     hosts = el('div', '', 'chips'),
     filters = el('div', '', 'chips bot-chips'),
@@ -31,22 +31,15 @@ export function boardHeader(
         return
       }
       popup = popover(filter)
-      popup.node.append(
-        controls.trigger,
-        controls.needs,
-        snoozed,
-        controls.repos,
-        el('div', 'Computers', 'mlabel'),
-        hosts,
-      )
+      popup.node.append(controls.trigger, controls.needs, snoozed, controls.repos, el('div', '设备', 'mlabel'), hosts)
       popup.position()
     },
     'ico',
   )
   filter.append(icon('M3 5h18M6 12h12M10 19h4'))
-  filter.setAttribute('aria-label', 'Filters')
-  updated.setAttribute('aria-label', 'Refresh board')
-  const brand = el('h1', 'Bot Kanban Board', 'brand')
+  filter.setAttribute('aria-label', '筛选')
+  updated.setAttribute('aria-label', '刷新看板')
+  const brand = el('h1', '机器人看板', 'brand')
   brand.prepend(icon('M2 2h3.6v12H2zM6.7 2h3.6v8H6.7zM11.4 2H15v5h-3.6z', 16))
   const tools = el('div', '', 'header-tools')
   tools.append(updated, filter, gear)
@@ -58,11 +51,11 @@ export function boardHeader(
     draw(data: Snapshot, board: Board, trees: Workspace[]) {
       demo.hidden = !data.demo
       const selected = board.selected
-      updated.replaceChildren(el('span', '', 'live'), data.itemsAt ? 'Read ' + age(data.itemsAt) : 'Reading…')
+      updated.replaceChildren(el('span', '', 'live'), data.itemsAt ? `上次读取：${age(data.itemsAt)}` : '正在读取…')
       unreachable.replaceChildren()
       hosts.replaceChildren(
         ...board.computers.map((c) => {
-          const chip = el('span', c.name + ' · ' + (c.unreachable ? 'Unreachable' : c.count), 'chip')
+          const chip = el('span', c.name + ' · ' + (c.unreachable ? '无法连接' : c.count), 'chip')
           if (c.error) chip.append(el('small', describeFailure(c.error)))
           if (c.warning) chip.append(el('small', describeFailure(c.warning)))
           if (c.unreachable) unreachable.append(chip.cloneNode(true))
@@ -85,11 +78,7 @@ export function boardHeader(
             e.preventDefault()
             toggle(true)
           }
-          const tip = el(
-            'span',
-            'Click to hide · Right-click or ⌥-click to show only ' + b.name + "'s cards, merges included",
-            'chip-tip',
-          )
+          const tip = el('span', `点击以切换显示 · 右键或按住 Alt 点击，仅显示 ${b.name} 的卡片及合并记录`, 'chip-tip')
           chip.append(tip)
           chip.onmouseenter = () => {
             const r = chip.getBoundingClientRect()
@@ -108,7 +97,7 @@ export function boardHeader(
       message.textContent =
         data.banner ??
         (data.itemsAt && !board.bots.length && board.computers.every((c) => !c.error && !c.warning)
-          ? 'No bots yet. Open Items will appear here when a bot creates one.'
+          ? '暂无机器人。机器人创建任务后，未关闭的任务会显示在这里。'
           : warnings.join(' · '))
     },
   }

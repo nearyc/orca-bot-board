@@ -9,16 +9,16 @@ export function retry(failure: Failure, consecutive: number, now: number) {
   const delay = limited ? Math.max(1000, (failure.resetAt ?? now + maxBackoff) - now) : backoffDelay(consecutive)
   const at = now + delay
   const reason = limited
-    ? 'GitHub rate limit reached'
-    : failure.status === 401 || /not logged (?:in|into)|gh auth login/i.test(failure.message)
-      ? 'GitHub needs authentication. Run gh auth login'
-      : failure.status
-        ? 'GitHub is having trouble (HTTP ' + failure.status + ')'
-        : /inside a bot session|Cannot find executable/.test(failure.message)
-          ? failure.message.replace(/\.$/, '')
-          : 'Can’t reach GitHub'
+    ? '已达到 GitHub 请求频率上限'
+    : failure.kind === 'bot-session' || failure.kind === 'missing-executable'
+      ? failure.message.replace(/。$/, '')
+      : failure.status === 401 || /not logged (?:in|into)|gh auth login/i.test(failure.message)
+        ? 'GitHub 需要登录，请运行 gh auth login'
+        : failure.status
+          ? `GitHub 请求失败（HTTP ${failure.status}）`
+          : '无法连接 GitHub'
   const when = limited
-    ? 'at ' + new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-    : retryLabel(delay)
-  return { at, limited, message: reason + '. Trying again ' + when + '.' }
+    ? `将在 ${new Date(at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })} 重试`
+    : `${retryLabel(delay)}重试`
+  return { at, limited, message: `${reason}。${when}。` }
 }

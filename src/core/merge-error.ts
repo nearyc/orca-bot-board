@@ -14,8 +14,8 @@ export type AttemptFailure = Omit<MergeAttemptError, 'n' | 'at'>
 function timeout(step: MergeStep, seconds: number): AttemptFailure {
   return {
     step,
-    short: 'timeout after ' + seconds + 's',
-    full: 'GitHub did not answer within ' + seconds + ' seconds.',
+    short: `${seconds} 秒后超时`,
+    full: `在 ${seconds} 秒内未收到响应。`,
   }
 }
 export function fromThrown(
@@ -39,8 +39,10 @@ export function fromFailure(f: Failure, step: MergeStep): AttemptFailure {
     .split(/\r?\n/)
     .map((line) => line.trim())
   let short = f.message.trim().split(/\r?\n/)[0] ?? ''
+  if (f.kind === 'timeout' && f.timeoutSeconds !== undefined) return timeout(step, f.timeoutSeconds)
+  if (f.kind === 'network') return { step, short: '网络错误', full: '无法连接 GitHub，请检查网络。\n' + full }
   if (step === 'PR read')
-    return { step, status: f.status, short: f.command === 'PR read' ? short : 'GitHub failed: ' + short, full }
+    return { step, status: f.status, short: f.command === 'PR read' ? short : '读取拉取请求失败', full }
   if (f.status) {
     if (/^Repository rule violations found|^Validation failed\b|\b(?:found|failed)[.:]?$/i.test(first)) {
       const violation = rest.find((line) => line && !/^https?:\/\//i.test(line))
@@ -48,9 +50,6 @@ export function fromFailure(f: Failure, step: MergeStep): AttemptFailure {
     }
     return { step, status: f.status, short, full }
   }
-  if (f.kind === 'timeout' && f.timeoutSeconds !== undefined) return timeout(step, f.timeoutSeconds)
-  if (f.kind === 'network')
-    return { step, short: 'network error', full: 'Could not reach GitHub. Check the internet connection.' }
   return { step, short, full }
 }
 export function attemptLabel(a: AttemptFailure) {
@@ -58,7 +57,13 @@ export function attemptLabel(a: AttemptFailure) {
 }
 export function attemptMeta(a: MergeAttemptError) {
   const time = [a.at.getHours(), a.at.getMinutes(), a.at.getSeconds()].map((n) => String(n).padStart(2, '0')).join(':')
-  return 'Attempt ' + a.n + ' · ' + time + ' · ' + a.step + (a.status ? ' · HTTP ' + a.status : '')
+  const labels: Record<MergeStep, string> = {
+    preflight: '合并前检查',
+    merge: '合并',
+    'PR read': '读取拉取请求',
+    'merge assessment': '评估合并条件',
+  }
+  return `第 ${a.n} 次尝试 · ${time} · ${labels[a.step]}` + (a.status ? ' · HTTP ' + a.status : '')
 }
 export function attemptsText(list: MergeAttemptError[]) {
   return list.map((a) => attemptMeta(a) + '\n' + a.full).join('\n\n')

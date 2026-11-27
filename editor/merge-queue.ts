@@ -53,7 +53,7 @@ export function mergeQueue(
   function totals() {
     busy = false
     active = ''
-    heading.textContent = merged + ' merged' + (failed.size ? ', ' + failed.size + ' failed' : '')
+    heading.textContent = `已合并 ${merged} 个${failed.size ? `，失败 ${failed.size} 个` : ''}`
     changed()
     if (!failed.size)
       timer = setTimeout(() => {
@@ -67,7 +67,7 @@ export function mergeQueue(
       symbol = el('span', '', 'ic'),
       text = el('div', '', 'txt'),
       name = el('span', pr.title, 'nm'),
-      status = el('span', 'queued', 'st')
+      status = el('span', '排队中', 'st')
     const attempts: MergeAttemptError[] = []
     const errors = mergeErrorDetails()
     name.title = pr.title
@@ -80,7 +80,7 @@ export function mergeQueue(
       const dot = el('span', mark, kind === 'run' ? 'spin' : mark ? '' : 'dot')
       symbol.replaceChildren(dot)
     }
-    state('', 'queued', '')
+    state('', '排队中', '')
     let approved: { method: MergeMethod; sha: string; facts: ConfirmedMerge } | undefined
     async function attempt(manual: boolean): Promise<'merged' | 'removed' | AttemptFailure> {
       let step: MergeStep = 'PR read'
@@ -142,8 +142,8 @@ export function mergeQueue(
           failure = result.ok
             ? {
                 step,
-                short: 'merge not confirmed',
-                full: 'GitHub accepted the merge request but did not confirm the merge. Refresh the board to check.',
+                short: '未确认合并',
+                full: 'GitHub 已接受合并请求，但尚未确认合并。请刷新看板查看结果。',
               }
             : fromFailure(result, started ? 'merge' : 'preflight')
         } catch (err) {
@@ -155,12 +155,12 @@ export function mergeQueue(
           const reread = await panelRequest('pr.read', ref, requestOptions)
           if (!reread.ok) {
             const readFailure = fromFailure(reread, 'PR read')
-            return { ...readFailure, full: failure.full + '\nPR read: ' + readFailure.full }
+            return { ...readFailure, full: failure.full + '\n重新读取拉取请求：' + readFailure.full }
           }
           return reread.value.merged || reread.value.closed ? 'removed' : failure
         } catch (err) {
           const readFailure = rejected(err, 'PR read')
-          return { ...readFailure, full: failure.full + '\nPR read: ' + readFailure.full }
+          return { ...readFailure, full: failure.full + '\n重新读取拉取请求：' + readFailure.full }
         }
       } catch (err) {
         return rejected(err, step)
@@ -171,7 +171,7 @@ export function mergeQueue(
       active = key
       node.querySelector('.rt')?.remove()
       for (let i = 0; ; i++) {
-        state('run', 'merging', '')
+        state('run', '合并中', '')
         const bounds = node.getBoundingClientRect(),
           viewport = body.getBoundingClientRect()
         if (bounds.top < viewport.top) body.scrollTop += bounds.top - viewport.top
@@ -184,7 +184,7 @@ export function mergeQueue(
             errors.details.remove()
             merged++
             node.style.height = node.offsetHeight + 'px'
-            state('merged', 'merged', '✓')
+            state('merged', '已合并', '✓')
             await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
             node.classList.add('done')
             node.style.height = '0px'
@@ -194,22 +194,22 @@ export function mergeQueue(
           return result === 'merged' ? { pr, result: manual ? 'merged (manual retry)' : 'merged' } : undefined
         }
         const calls = recentCalls()
-        const full = result.full + '\nPanel calls in the last 10 s: ' + calls.length + ' (' + calls.join(', ') + ')'
+        const full = `${result.full}\n过去 10 秒内的面板调用：${calls.length} 次（${calls.join(', ')}）`
         attempts.push({ n: attempts.length + 1, at: new Date(), ...result, full })
         const seconds = waits[i]
         if (manual || seconds === undefined) break
         for (let remaining = seconds; remaining; remaining--) {
-          state('retry', 'failed, retrying in ' + remaining + 's', '')
+          state('retry', `失败，将在 ${remaining} 秒后重试`, '')
           await sleep(1000)
         }
       }
       failed.add(key)
-      state('fail', manual ? 'failed again' : 'failed after 2 retries', '!')
+      state('fail', manual ? '再次失败' : '重试两次后仍失败', '!')
       errors.update(attempts)
       text.append(errors.line)
       node.append(
         button(
-          'Retry',
+          '重试',
           async () => {
             if (busy) return
             busy = true
@@ -246,7 +246,7 @@ export function mergeQueue(
       busy = true
       panel.classList.add('on')
       changed()
-      heading.textContent = 'Merging ' + batch.length + ' pull request' + (batch.length === 1 ? '' : 's')
+      heading.textContent = `正在合并 ${batch.length} 个拉取请求`
       const entries = batch.map(entry),
         results: MergeResult[] = []
       bar.style.width = '0%'

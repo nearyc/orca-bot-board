@@ -15,7 +15,7 @@ export async function computers(
         .map((e) => ({ key: str(e, 'id'), name: str(e, 'name') })),
     ),
   )
-  const targets = [{ key: 'local', name: 'This computer' }, ...(environments.ok ? environments.value : [])]
+  const targets = [{ key: 'local', name: '本机' }, ...(environments.ok ? environments.value : [])]
   const rosters = await Promise.all(
     targets.map(async (target) => {
       const env = ['--environment', target.key, '--json']
@@ -70,7 +70,7 @@ export async function computers(
               )
               all.push(...page.items)
               cursor = typeof page.next === 'string' ? page.next : null
-              if (cursor && seen.has(cursor)) throw Error('Item pagination repeated a cursor')
+              if (cursor && seen.has(cursor)) throw Error('任务分页返回了重复的游标。')
               if (cursor) seen.add(cursor)
             } while (cursor)
             return all
@@ -102,7 +102,7 @@ export async function computers(
   if (!environments.ok)
     results.push({
       key: 'discovery',
-      name: 'Paired computers',
+      name: '已配对设备',
       warning: environments,
       source: { ok: true, value: { bots: [], items: [], workspaces: [] } },
     })

@@ -28,10 +28,7 @@ export async function openBoard(orca: OrcaWorkerApi, path: string | null) {
   let id = project?.id
   if (!id) {
     if (path === null)
-      throw Error(
-        'First-time demo setup: add the board folder as a folder project in Orca, then reopen the board. Folder: ' +
-          folder,
-      )
+      throw Error(`首次使用演示模式时，请在 Orca 中将此文件夹添加为文件夹项目，然后重新打开看板：${folder}`)
     id = await reader('orca', path)(['repo', 'add', '--kind', 'folder', '--path', folder, '--json'], (v) =>
       str(obj(obj(v).repo), 'id'),
     )
@@ -39,7 +36,7 @@ export async function openBoard(orca: OrcaWorkerApi, path: string | null) {
   if (!project?.hidden) await orca.host.call('project.setHidden', { projectId: id, hidden: true })
   const trees = await orca.host.call('workspace.list')
   const workspace = trees.workspaces.find((w) => w.projectId === id && w.kind === 'folder')
-  if (!workspace) throw Error('Board folder unavailable. Reopen the board from the command palette.')
+  if (!workspace) throw Error('看板文件夹不可用，请从命令面板重新打开看板。')
   await orca.host.call('workspace.open', { workspaceId: workspace.id })
   await orca.host.call('editor.open', { workspaceId: workspace.id, path: file })
 }

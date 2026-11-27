@@ -24,7 +24,7 @@ it('returns plain JSON for an unstacked open PR without a head OID', async () =>
 it('returns a plain JSON failure for a missing PR', async () => {
   const result = await readBoardPr('', { ...input, number: 999 }, demoBoard(), true, async () => {}, vi.fn())
   expect(JSON.parse(JSON.stringify(result))).toStrictEqual(result)
-  expect(result).toMatchObject({ ok: false, command: 'PR read', message: 'PR #999 not found on the board' })
+  expect(result).toMatchObject({ ok: false, command: 'PR read', message: '看板上找不到拉取请求 #999。' })
 })
 
 it('preserves a GitHub failure as plain JSON', async () => {

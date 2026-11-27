@@ -101,12 +101,12 @@ describe('mapping', () => {
     ['https://user@github.com/Owner/Repo', 'Owner/Repo'],
     ['https://gitlab.com/Owner/Repo.git', null],
     ['invalid', null],
-  ])('parses the GitHub repository from %s', (url, expected) => {
+  ])('parses the GitHub repository from %s', (url: string | null, expected: string | null) => {
     expect(githubRepo(url!)).toBe(expected)
   })
   it.each(['guilatrova/bot-kanban-board', 'Guilatrova/Bot-Kanban-Board'])(
     'maps a renamed project by remote %s',
-    (remote) => {
+    (remote: string) => {
       const w = { ...workspace, repo: 'orca-bots-board', remote }
       expect(owners({ ...pr, repo: 'guilatrova/bot-kanban-board' }, [], [w])).toMatchObject({
         how: 'branch',

@@ -45,8 +45,8 @@ export async function refreshItemData(
     const needsYou = items.filter((i) => i.status === 'needs_you').length
     const unreachable = rows.filter((c) => !c.source.ok).length
     const text = hasCount
-      ? 'Needs you ' + needsYou + (unreachable ? ' · ' + unreachable + ' unreachable' : '')
-      : 'Needs you ?'
+      ? `待我处理 ${needsYou}${unreachable ? ` · ${unreachable} 台设备无法连接` : ''}`
+      : '待我处理：未知'
     await orca.host.call('statusBar.update', {
       id: 'needs-you',
       text,

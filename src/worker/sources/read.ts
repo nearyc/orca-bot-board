@@ -16,7 +16,7 @@ export function reader(binary: 'orca' | 'gh', path: string) {
         ok: false,
         command: commandLabel(binary, args),
         message: String(error),
-        next: 'Check the CLI version and refresh the board.',
+        next: '请检查 CLI 版本后刷新看板。',
       })
     }
   }
@@ -27,6 +27,6 @@ export async function source<T>(command: string, load: () => Promise<T>): Promis
   } catch (error) {
     return error instanceof ReadFailure
       ? error.failure
-      : { ok: false, command, message: String(error), next: 'Check the connection and refresh.' }
+      : { ok: false, command, message: String(error), next: '请检查连接后刷新看板。' }
   }
 }

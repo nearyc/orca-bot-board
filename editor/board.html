@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Bot Kanban Board</title>
+    <title>机器人看板</title>
   </head>
   <body>
     <div
@@ -16,7 +16,7 @@
     <script>
       const startupError = document.getElementById('startup-error')
       function showStartupError(reason) {
-        startupError.textContent = 'Could not load the board. ' + String(reason)
+        startupError.textContent = '无法加载看板。详情：' + String(reason)
         startupError.hidden = false
       }
       window.addEventListener(
@@ -24,7 +24,7 @@
         (event) => {
           if (event instanceof ErrorEvent) showStartupError(event.message)
           else if (event.target instanceof HTMLScriptElement || event.target instanceof HTMLLinkElement)
-            showStartupError('Failed to load ' + (event.target.src || event.target.href))
+            showStartupError('无法加载资源：' + (event.target.src || event.target.href))
         },
         true,
       )

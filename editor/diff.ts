@@ -2,7 +2,7 @@ import { panelRequest } from './panel-request'
 import { el, external, describeFailure } from './dom'
 import { prKey, type FileChange, type MappedPr } from '../src/core/model'
 export async function showFiles(parent: HTMLElement, pr: MappedPr) {
-  parent.textContent = 'Reading changed files…'
+  parent.textContent = '正在读取改动文件…'
   try {
     let json = ''
     for (;;) {
@@ -12,7 +12,7 @@ export async function showFiles(parent: HTMLElement, pr: MappedPr) {
         { timeoutMs: 60000 },
       )
       if (!result.ok) {
-        parent.replaceChildren(el('p', describeFailure(result)), external('Files on GitHub', pr.url + '/files'))
+        parent.replaceChildren(el('p', describeFailure(result)), external('在 GitHub 查看文件', pr.url + '/files'))
         return
       }
       json += result.value.data
@@ -22,8 +22,8 @@ export async function showFiles(parent: HTMLElement, pr: MappedPr) {
     parent.replaceChildren()
     if (files.length < pr.files)
       parent.append(
-        el('p', files.length + ' of ' + pr.files + ' files shown'),
-        external('Files on GitHub', pr.url + '/files'),
+        el('p', `显示 ${files.length} 个文件，共 ${pr.files} 个`),
+        external('在 GitHub 查看文件', pr.url + '/files'),
       )
     for (const file of files) {
       const details = el('details')
@@ -31,10 +31,7 @@ export async function showFiles(parent: HTMLElement, pr: MappedPr) {
       details.ontoggle = () => {
         if (!details.open || details.children.length > 1) return
         if (!file.patch) {
-          details.append(
-            el('p', 'Patch unavailable for this binary or large file.'),
-            external('View file on GitHub', file.url),
-          )
+          details.append(el('p', '此二进制文件或大文件无法显示差异。'), external('在 GitHub 查看此文件', file.url))
           return
         }
         const pre = el('pre')
@@ -49,12 +46,12 @@ export async function showFiles(parent: HTMLElement, pr: MappedPr) {
       el(
         'p',
         describeFailure({
-          command: 'Read PR files',
+          command: '读取拉取请求文件',
           message: e instanceof Error ? e.message : String(e),
-          next: 'Reopen the drawer to retry.',
+          next: '请重新打开详情以重试。',
         }),
       ),
-      external('Files on GitHub', pr.url + '/files'),
+      external('在 GitHub 查看文件', pr.url + '/files'),
     )
   }
 }

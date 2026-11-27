@@ -1,14 +1,14 @@
 {
   "manifestVersion": 2,
   "id": "bot-kanban-board",
-  "name": "Bot Kanban Board",
+  "name": "机器人看板",
   "version": "0.11.0",
   "publisher": "guilatrova",
   "license": "MIT",
-  "description": "See every Orca bot's open Items and pull requests on one board, answer what needs you, and merge in one click.",
+  "description": "在同一张看板上查看 Orca 机器人的任务和拉取请求，处理需要你回复的事项，并一键合并。",
   "cover": {
     "path": "assets/cover.png",
-    "alt": "All your bots, one board. Bot Kanban Board showing Needs you, In progress and pull requests ready to merge."
+    "alt": "机器人看板：查看待我处理、进行中的任务和可合并的拉取请求。"
   },
   "execution": "trusted-worker",
   "pluginApi": 1,
@@ -18,29 +18,29 @@
     "customEditors": [
       {
         "id": "board",
-        "title": "Bot Kanban Board",
+        "title": "机器人看板",
         "extensions": [".botkanban"],
         "entry": "editor/board.html",
         "frame": "isolated"
       }
     ],
     "commands": [
-      { "id": "bot-kanban-board.open", "title": "Open Bot Kanban Board" },
-      { "id": "bot-kanban-board.needs-you", "title": "Show Needs you" }
+      { "id": "bot-kanban-board.open", "title": "打开机器人看板" },
+      { "id": "bot-kanban-board.needs-you", "title": "查看待我处理的任务" }
     ],
     "statusBarItems": [
-      { "id": "needs-you", "text": "Needs you \u2026", "icon": "bell", "command": "bot-kanban-board.needs-you" }
+      { "id": "needs-you", "text": "待我处理…", "icon": "bell", "command": "bot-kanban-board.needs-you" }
     ],
     "events": [{ "on": "agent.status.changed" }],
     "settings": [
-      { "key": "demo", "type": "boolean", "default": false, "title": "Demo data (restart plugin to apply)" },
-      { "key": "orcaPath", "type": "string", "default": "", "title": "Orca executable path" },
-      { "key": "ghPath", "type": "string", "default": "", "title": "GitHub CLI executable path" },
+      { "key": "demo", "type": "boolean", "default": false, "title": "演示数据（重启插件后生效）" },
+      { "key": "orcaPath", "type": "string", "default": "", "title": "Orca 可执行文件路径" },
+      { "key": "ghPath", "type": "string", "default": "", "title": "GitHub CLI 可执行文件路径" },
       {
         "key": "itemsSeconds",
         "type": "integer",
         "default": 30,
-        "title": "Item refresh interval (seconds)",
+        "title": "任务刷新间隔（秒）",
         "minimum": 10,
         "maximum": 3600
       },
@@ -48,7 +48,7 @@
         "key": "prSeconds",
         "type": "integer",
         "default": 90,
-        "title": "Pull request refresh interval (seconds)",
+        "title": "拉取请求刷新间隔（秒）",
         "minimum": 10,
         "maximum": 3600
       }

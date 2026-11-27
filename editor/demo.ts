@@ -33,7 +33,7 @@ const fake = {
             prs: [],
             total: 0,
             prsAt: 0,
-            banner: 'Can’t reach GitHub (HTTP 502). Trying again in 90 seconds.',
+            banner: 'GitHub 请求失败（HTTP 502）。90 秒后重试。',
             error: { ok: false, message: 'HTTP 502', next: '', command: 'gh api' },
           }),
         }
@@ -103,7 +103,7 @@ const fake = {
             end: true,
           },
         }
-      if (k === 'board.jump') return 'Demo workspace selected.'
+      if (k === 'board.jump') return '已选择演示工作区。'
       return null
     },
   },

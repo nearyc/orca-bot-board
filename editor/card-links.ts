@@ -13,7 +13,7 @@ export function appendCardLinks(
     const parent = item ? stats : node
     parent.append(
       button(
-        item ? 'for #' + link.number : k,
+        item ? '关联任务 #' + link.number : k,
         (e) => {
           e.stopPropagation()
           const target = cards.get(k)

@@ -5,7 +5,7 @@ export function panel(title: string) {
   dialog.setAttribute('aria-label', title)
   dialog.append(
     el('h2', title),
-    button('Close', () => dialog.close()),
+    button('关闭', () => dialog.close()),
   )
   document.body.append(dialog)
   dialog.onclose = () => dialog.remove()
@@ -22,7 +22,7 @@ export function ask(title: string, value: string, submit: (text: string) => void
   input.oninput = () => input.setCustomValidity('')
   input.required = true
   input.maxLength = 300
-  const accept = el('button', 'Continue')
+  const accept = el('button', '继续')
   form.append(input, accept)
   form.onsubmit = (e) => {
     e.preventDefault()

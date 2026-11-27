@@ -188,7 +188,7 @@ export function closePr(path: string, pr: PullRequest) {
     reader('gh', path)(
       ['api', '--method', 'PATCH', `repos/${pr.repo}/pulls/${pr.number}`, '-f', 'state=closed'],
       (value) => {
-        if (obj(value).state !== 'closed') throw Error('GitHub did not confirm the close.')
+        if (obj(value).state !== 'closed') throw Error('GitHub 未确认关闭此拉取请求。')
         return null
       },
     ),
@@ -226,12 +226,12 @@ export async function mergePr(
         ? {
             ok: false as const,
             command: 'gh api',
-            message: String(obj(result.value).message || 'GitHub did not confirm the merge.'),
+            message: String(obj(result.value).message || 'GitHub 未确认合并。'),
             next: '',
           }
         : result
       if (step === 'merge') facts.delete(JSON.stringify([path, pr.repo]))
-      failure.next = 'Check the pull request and its rules, then merge it on GitHub.'
+      failure.next = '请在 GitHub 上检查拉取请求及仓库规则，再尝试合并。'
       progress({ key, step, state: 'failed', failure })
       return failure
     }

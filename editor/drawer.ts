@@ -7,7 +7,7 @@ import { isClosed, itemKey, prKey, type Item, type MappedPr, type Workspace } fr
 export function drawers(openMerge: (p: MappedPr) => void, statusSelector: (i: Item) => HTMLElement) {
   const dialog = el('dialog'),
     body = el('section'),
-    close = button('Close', () => dialog.close())
+    close = button('关闭', () => dialog.close())
   dialog.append(close, body)
   document.body.append(dialog)
   let origin: HTMLElement | null = null
@@ -28,7 +28,7 @@ export function drawers(openMerge: (p: MappedPr) => void, statusSelector: (i: It
   }
   function workspace(w: Workspace) {
     body.append(
-      button('Open ' + w.name, async () =>
+      button('打开 ' + w.name, async () =>
         notice(await panelRequest('board.jump', { computer: w.computer, bot: w.bot, workspace: w.id })),
       ),
     )
@@ -38,7 +38,7 @@ export function drawers(openMerge: (p: MappedPr) => void, statusSelector: (i: It
     body.style.setProperty('--tone', 'var(--' + i.status + ')')
     body.append(
       badge(i.computer, i.bot),
-      el('small', i.bot + ' · Item #' + i.number + ' · ' + age(i.updated)),
+      el('small', i.bot + ' · 任务 #' + i.number + ' · ' + age(i.updated)),
       el('h2', i.title),
       el('mark', labels[i.status]),
       ...(itemStatusActions && !isClosed(i.status) ? [statusSelector(i)] : []),
@@ -46,19 +46,20 @@ export function drawers(openMerge: (p: MappedPr) => void, statusSelector: (i: It
     const answer = async () =>
       notice(await panelRequest('board.jump', { computer: i.computer, bot: i.bot, number: i.number }))
     if (i.status === 'needs_you') {
-      section('Question', i.question)
+      section('问题', i.question)
       for (const opt of i.options) body.append(el('p', opt, 'option'))
-      body.append(button('Answer in Orca', answer))
+      body.append(button('在 Orca 中回答', answer))
     }
-    section('Waiting on', i.wait)
-    section('Description', i.description)
-    section('Done means', i.done)
+    section('等待事项', i.wait)
+    section('描述', i.description)
+    section('完成标准', i.done)
     const report = i.workers.findLast((w) => w.subject || w.body)
-    if (report) section('Latest worker report', [report.subject, report.body].filter(Boolean).join('\n'))
+    if (report) section('最新执行报告', [report.subject, report.body].filter(Boolean).join('\n'))
     if (i.workers.length) {
-      body.append(el('h3', 'Workers'))
+      body.append(el('h3', '执行者'))
       for (const w of i.workers) {
-        body.append(el('p', [w.title, w.state].filter(Boolean).join(' · ')))
+        const states: Record<string, string> = { working: '工作中', done: '已完成' }
+        body.append(el('p', [w.title, w.state && (states[w.state] ?? w.state)].filter(Boolean).join(' · ')))
         const tree = trees.find(
           (t) => t.computer === i.computer && t.bot === i.bot && (w.workspace === t.id || w.workspace === t.name),
         )
@@ -66,9 +67,9 @@ export function drawers(openMerge: (p: MappedPr) => void, statusSelector: (i: It
       }
     }
     for (const p of prs.filter((p) => p.items.some((m) => itemKey(m) === itemKey(i))))
-      body.append(button('View diff · ' + prKey(p), () => pr(p, card)))
-    body.append(button('Open chat in Orca', answer))
-    section('Chat', i.chat)
+      body.append(button('查看差异 · ' + prKey(p), () => pr(p, card)))
+    body.append(button('在 Orca 中打开聊天', answer))
+    section('聊天', i.chat)
   }
   function pr(p: MappedPr, card: HTMLElement) {
     open(card)
@@ -81,32 +82,32 @@ export function drawers(openMerge: (p: MappedPr) => void, statusSelector: (i: It
       prPill(p),
       el('p', prStats(p).diff, 'diff-counts'),
       button(
-        'Merge',
+        '合并',
         () => {
           dialog.close()
           openMerge(p)
         },
         'merge-action',
       ),
-      external('Files on GitHub', p.url + '/files'),
-      external('Conversation on GitHub', p.url),
+      external('在 GitHub 查看文件', p.url + '/files'),
+      external('在 GitHub 查看讨论', p.url),
     )
-    section('Stack', p.behind ? 'Behind ' + p.behind : null)
-    section('Branch', p.head + ' → ' + p.base)
-    section('Closes', p.closes.map(prKey).join(', '))
+    section('依赖关系', p.behind ? '依赖 ' + p.behind : null)
+    section('分支', p.head + ' → ' + p.base)
+    section('关联关闭的问题', p.closes.map(prKey).join(', '))
     if (p.how)
       section(
-        'Matched by',
+        '匹配依据',
         {
-          branch: 'The workspace branch matches this pull request.',
-          item: 'An Item names this pull request.',
-          issue: 'An Item names an issue this pull request closes.',
+          branch: '工作区分支与此拉取请求匹配。',
+          item: '有任务引用了此拉取请求。',
+          issue: '有任务引用了此拉取请求会关闭的问题。',
         }[p.how],
       )
-    section('Items', p.items.map((i) => i.bot + ' #' + i.number + ' · ' + i.title).join('\n'))
+    section('关联任务', p.items.map((i) => i.bot + ' #' + i.number + ' · ' + i.title).join('\n'))
     for (const w of p.workspaces) workspace(w)
     const files = el('div')
-    body.append(el('h3', 'Changes'), files)
+    body.append(el('h3', '改动'), files)
     void showFiles(files, p)
   }
   return { item, pr }

@@ -36,9 +36,14 @@ export function mergeToasts(prefs: MergePreferences, settings: HTMLButtonElement
           botName: prefs.botName,
           subject:
             results.length > 1
-              ? 'Batch merged (' + results.filter((r) => r.result !== 'failed').length + '/' + results.length + ')'
-              : 'PR merged',
-          body: results.map((r) => prKey(r.pr) + ': ' + r.result + ' ' + r.pr.url).join('\n'),
+              ? '批量合并结果（' + results.filter((r) => r.result !== 'failed').length + '/' + results.length + '）'
+              : '拉取请求已合并',
+          body: results
+            .map(
+              (r) =>
+                `${prKey(r.pr)}：${{ merged: '已合并', failed: '合并失败', 'merged (manual retry)': '手动重试后已合并' }[r.result]} ${r.pr.url}`,
+            )
+            .join('\n'),
         },
         { timeoutMs: 120000 },
       ),
@@ -56,32 +61,32 @@ export function mergeToasts(prefs: MergePreferences, settings: HTMLButtonElement
     footer.append(text)
     const merged = state.refs.filter((r) => r.result !== 'failed')
     const refs = merged.map((r) => shortRef(r.pr)).join(', ')
-    sub.textContent = countLabel(merged.length, 'pull request') + ' merged · ' + refs
+    sub.textContent = '已合并 ' + countLabel(merged.length, '个拉取请求') + ' · ' + refs
     if (state.kind === 'pending' || state.kind === 'sending') {
-      bot = prefs.botName || 'the bot'
-      title.textContent = 'Telling ' + bot + (merged.length > 1 ? ' about the batch' : '')
+      bot = prefs.botName || '机器人'
+      title.textContent = merged.length > 1 ? `正在向 ${bot} 通知批量合并结果` : `正在通知 ${bot}`
       if (state.kind === 'pending') {
         const track = el('span', '', 'undo-track')
         footer.append(
           track,
-          button('Undo', queue.undo, 'undo-primary'),
-          button('Send now', () => queue.send(), 'send-now'),
+          button('取消发送', queue.undo, 'undo-primary'),
+          button('立即发送', () => queue.send(), 'send-now'),
         )
         track.style.animationDuration = Math.min(undoWindow, state.deadline - Date.now()) + 'ms'
       }
     } else if (state.kind === 'failed') {
-      title.textContent = 'Could not tell ' + bot + '. The merge is done.'
+      title.textContent = `未能通知 ${bot}，但合并已完成。`
       footer.append(
-        button('Try again', () => queue.send(), 'undo-primary'),
-        button('Settings', () => settings.click()),
-        button('Dismiss', queue.undo),
+        button('重试', () => queue.send(), 'undo-primary'),
+        button('设置', () => settings.click()),
+        button('关闭', queue.undo),
       )
     } else if (state.kind === 'canceled') {
-      title.textContent = 'Message to ' + bot + ' canceled'
-      sub.textContent = 'The merges are done; only the message was stopped.'
+      title.textContent = `已取消发送给 ${bot} 的消息`
+      sub.textContent = '合并已完成，仅取消了通知。'
       footer.prepend(el('span', '↺', 'undo-icon'))
     } else {
-      title.textContent = 'Told ' + bot
+      title.textContent = `已通知 ${bot}`
       footer.prepend(el('span', '✓', 'undo-icon sent'))
     }
   }
@@ -98,8 +103,8 @@ export function mergeToasts(prefs: MergePreferences, settings: HTMLButtonElement
     body.append(heading, detail)
     toast.append(body)
     stack.append(toast)
-    heading.textContent = batch ? 'Batch finished' : 'Merged'
-    detail.textContent = 'No bot was told (turned off in Settings)'
+    heading.textContent = batch ? '批量合并已结束' : '已合并'
+    detail.textContent = '未通知机器人（设置中已关闭）'
     setTimeout(() => toast.remove(), 3500)
   }
 }

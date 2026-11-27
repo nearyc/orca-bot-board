@@ -34,8 +34,8 @@ it('excludes collapsed and filtered cards, keeping scrolled-out checks only outs
 })
 it('formats the diff, files and optional check status', () => {
   const pr = { additions: 60594, deletions: 0, files: 202, checks: null }
-  expect(prStats(pr)).toEqual({ diff: '+60,594 −0 · 202 files', check: '', failed: false })
-  expect(prStats({ ...pr, checks: 'FAILURE' })).toMatchObject({ check: 'Checks failed', failed: true })
+  expect(prStats(pr)).toEqual({ diff: '+60,594 −0 · 202 个文件', check: '', failed: false })
+  expect(prStats({ ...pr, checks: 'FAILURE' })).toMatchObject({ check: '检查失败', failed: true })
 })
 
 import { vi, afterEach } from 'vitest'

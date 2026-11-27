@@ -23,9 +23,9 @@ export async function mergePreflight(
     }
     return {
       ok: false as const,
-      command: 'Merge',
-      message: live.value.merged ? 'Pull request already merged.' : 'Pull request already closed.',
-      next: 'Refresh the board.',
+      command: '合并',
+      message: live.value.merged ? '此拉取请求已合并。' : '此拉取请求已关闭。',
+      next: '请刷新看板。',
     }
   }
   const current = live.value.pr
@@ -34,9 +34,9 @@ export async function mergePreflight(
   if (current.sha !== input.sha || current.updated !== input.updated)
     return {
       ok: false as const,
-      command: 'Merge',
-      message: 'Pull request changed.',
-      next: 'Refresh the board and reopen the confirmation.',
+      command: '合并',
+      message: '此拉取请求已更新。',
+      next: '请刷新看板并重新打开确认窗口。',
     }
   return { ok: true, value: current }
 }

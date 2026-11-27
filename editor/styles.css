@@ -62,8 +62,8 @@
   --pr-soft: #c58af01f;
   --bad-soft: #ef7d6d1f;
   --shadow: 0 18px 50px #000000a6;
-  --sans: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --sans: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei UI', 'PingFang SC', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, 'Microsoft YaHei UI', 'PingFang SC', monospace;
   --r: 6px;
 }
 @media (prefers-color-scheme: light) {

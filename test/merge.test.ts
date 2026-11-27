@@ -43,22 +43,29 @@ describe('merge assessment', () => {
       repo,
     )
     expect(result.warnings.map((w) => w.text)).toEqual([
-      expect.stringMatching(/ready/),
-      expect.stringMatching(/preview/),
-      expect.stringMatching(/No checks/),
-      expect.stringMatching(/large/),
+      expect.stringContaining('标记为可审查'),
+      expect.stringContaining('preview'),
+      expect.stringContaining('尚未运行任何检查'),
+      expect.stringContaining('改动量很大'),
     ])
     for (const checks of ['PENDING', 'FAILURE'])
       expect(assessMerge({ ...pr, checks }, repo).warnings[0]?.text).toContain(
-        checks === 'PENDING' ? 'Checks running' : 'Checks failed',
+        checks === 'PENDING' ? '检查进行中' : '检查失败',
       )
   })
-  it.each(['do not merge', 'don\x27t merge', 'dont merge', 'not merge', 'WIP', 'Test Only', '[NO MERGE]'])(
-    'flags %s',
-    (title) => {
-      expect(assessMerge({ ...pr, title }, repo).warnings).toContainEqual(expect.objectContaining({ danger: true }))
-    },
-  )
+  it.each([
+    'do not merge',
+    'don\x27t merge',
+    'dont merge',
+    'not merge',
+    'WIP',
+    'Test Only',
+    '[NO MERGE]',
+    '请勿合并',
+    '仅供测试',
+  ])('flags %s', (title: string) => {
+    expect(assessMerge({ ...pr, title }, repo).warnings).toContainEqual(expect.objectContaining({ danger: true }))
+  })
   it('selects the local calendar day and sorts by merge time', () => {
     const dates = [new Date(2025, 4, 2), new Date(2025, 4, 1, 23, 59), new Date(2025, 4, 2, 23), new Date(2025, 4, 3)]
     const entries = dates.map((d, number) => ({ ...pr, number, mergedAt: d.toISOString() }))

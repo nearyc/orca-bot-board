@@ -25,22 +25,22 @@ export function mergeErrorDetails() {
   let timer: ReturnType<typeof setTimeout>
   let click = 0
   const copy = button(
-    'Copy all',
+    '复制全部',
     async () => {
       const id = ++click
       clearTimeout(timer)
       try {
         await navigator.clipboard.writeText(attemptsText(history))
         if (id !== click) return
-        copy.textContent = 'Copied'
+        copy.textContent = '已复制'
         copy.className = 'copy ok'
         timer = setTimeout(() => {
-          copy.textContent = 'Copy all'
+          copy.textContent = '复制全部'
           copy.className = 'copy'
         }, 1400)
       } catch {
         if (id !== click) return
-        copy.textContent = "Couldn't copy, try again"
+        copy.textContent = '复制失败，请重试'
         copy.className = 'copy bad'
       }
     },

@@ -11,9 +11,9 @@ export function selection(lane: HTMLElement, cards: Map<string, HTMLElement>, me
     selected.clear()
     sync()
   }
-  const go = button('Merge all', () => merge([...selected].map((k) => visible.get(k)!)), 'go')
+  const go = button('全部合并', () => merge([...selected].map((k) => visible.get(k)!)), 'go')
   const bar = el('div', '', 'selbar')
-  bar.append(label, button('Clear', clear), go)
+  bar.append(label, button('清除选择', clear), go)
   document.body.append(bar)
   const list = lane.querySelector<HTMLElement>('.list')!
   function allowed(drag?: Pick<DOMRect, 'top' | 'left' | 'right' | 'bottom'>) {
@@ -55,8 +55,8 @@ export function selection(lane: HTMLElement, cards: Map<string, HTMLElement>, me
   lane.addEventListener('click', prune)
   lane.addEventListener('keyup', prune)
   function sync() {
-    go.textContent = selected.size === 1 ? 'Merge' : 'Merge all'
-    label.textContent = selected.size + (selected.size === 1 ? ' pull request selected' : ' pull requests selected')
+    go.textContent = selected.size === 1 ? '合并' : '全部合并'
+    label.textContent = `已选中 ${selected.size} 个拉取请求`
     lane.classList.toggle('sel-mode', !!selected.size)
     bar.inert = !selected.size
     bar.classList.toggle('on', !!selected.size)
@@ -185,7 +185,7 @@ export function selection(lane: HTMLElement, cards: Map<string, HTMLElement>, me
         },
         'check',
       )
-      b.setAttribute('aria-label', 'Select ' + k)
+      b.setAttribute('aria-label', '选择 ' + k)
       b.append(icon('M4 12l5 5L20 6'))
       return b
     },

@@ -48,7 +48,7 @@ export function dropZones(
       const split = el('div', '', 'split')
       const targets = key === 'closed' ? (['done', 'canceled'] as const) : (['merge', 'close'] as const)
       for (const target of targets) {
-        const title = target === 'merge' ? 'Merge' : target === 'close' ? 'Close PR' : labels[target]
+        const title = target === 'merge' ? '合并' : target === 'close' ? '关闭拉取请求' : labels[target]
         const zone = el('div', title, 'zone')
         zone.classList.toggle('danger', target === 'canceled' || target === 'close')
         zone.ondragover = (e) => {

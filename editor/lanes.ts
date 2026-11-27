@@ -6,15 +6,15 @@ import { itemLanes, botKey } from '../src/core/model'
 export const laneKeys = [...itemLanes, 'prs', 'merged'] as const
 export type Lane = (typeof laneKeys)[number]
 const drawings = {
-  needs_you: ['Nothing needs you', 'M8 34h40M14 34l4-14h20l4 14M22 26h12'],
-  in_progress: ['No one is working', 'M28 12v8M28 36v8M12 28h8M36 28h8M17 17l5 5M34 34l5 5M17 39l5-5M34 22l5-5'],
+  needs_you: ['暂无需要你处理的任务', 'M8 34h40M14 34l4-14h20l4 14M22 26h12'],
+  in_progress: ['暂无进行中的任务', 'M28 12v8M28 36v8M12 28h8M36 28h8M17 17l5 5M34 34l5 5M17 39l5-5M34 22l5-5'],
   waiting: [
-    'Nothing is stuck',
+    '暂无待处理任务',
     'M18 10h20M18 46h20M20 10c0 10 16 12 16 18S20 36 20 46M36 10c0 10-16 12-16 18s16 8 16 18',
   ],
-  closed: ['Nothing closed yet', 'M14 29l9 9 19-20'],
-  prs: ['No open pull requests', 'M18 12v32M18 12a4 4 0 1 0 0 .1M38 44a4 4 0 1 0 0 .1M38 40V24c0-6-4-8-10-8h-6'],
-  merged: ['Nothing merged today', 'M18 12v32M38 44a4 4 0 1 0 0 .1M18 22c0 10 8 14 20 18'],
+  closed: ['今天暂无已关闭的任务', 'M14 29l9 9 19-20'],
+  prs: ['暂无未关闭的拉取请求', 'M18 12v32M18 12a4 4 0 1 0 0 .1M38 44a4 4 0 1 0 0 .1M38 40V24c0-6-4-8-10-8h-6'],
+  merged: ['今天暂无已合并的拉取请求', 'M18 12v32M38 44a4 4 0 1 0 0 .1M18 22c0 10 8 14 20 18'],
 } as const
 export function icon(path: string, box = 24) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -30,7 +30,7 @@ export function divider() {
     label = el('div', '', 'dv')
   label.append(
     icon('M6 3v18M17 5v3c0 5-11 3-11 9M4 3a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 4a2 2 0 1 0 4 0a2 2 0 1 0-4 0'),
-    el('i', 'Code'),
+    el('i', '代码'),
   )
   node.append(label)
   return node
@@ -40,7 +40,7 @@ export function makeLane(key: Lane, collapsed: Set<string>, save: () => Promise<
     heading = el('h2'),
     title = el('b'),
     count = el('small', '', 'count'),
-    failure = el('small', "Couldn't refresh", 'refresh-failure'),
+    failure = el('small', '刷新失败', 'refresh-failure'),
     photos = el('div', '', 'railav'),
     fold = el('span', '‹', 'fold'),
     list = el('div', '', 'list')

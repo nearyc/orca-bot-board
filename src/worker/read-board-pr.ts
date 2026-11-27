@@ -40,8 +40,8 @@ export async function readBoardPr(
     return {
       ok: false as const,
       command: 'PR read',
-      message: !pr ? 'PR #' + number + ' not found on the board' : 'No repository data for ' + repo,
-      next: 'Refresh the board and try again.',
+      message: !pr ? `看板上找不到拉取请求 #${number}。` : `无法获取仓库 ${repo} 的数据。`,
+      next: '请刷新看板后重试。',
     }
   const ordered = stackOrder([pr, ...data.prs.filter((p) => prKey(p) !== prKey(input))])
   return { ok: true, value: { merged: false, pr: ordered.find((p) => prKey(p) === prKey(input))!, facts } }
@@ -58,6 +58,6 @@ export function refreshFailure(error: unknown, report: (error: unknown) => void)
     ok: false,
     command: 'Refresh PRs',
     message: error instanceof Error ? error.message : String(error),
-    next: 'Refresh the board and try again.',
+    next: '请刷新看板后重试。',
   }
 }

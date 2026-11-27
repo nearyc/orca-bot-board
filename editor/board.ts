@@ -14,7 +14,7 @@ async function start() {
   const state = el('div', '', 'first-error')
   state.setAttribute('role', 'alert')
   const reason = el('span')
-  const again = button('Try again', () => run(true))
+  const again = button('重试', () => run(true))
   state.append(reason, again)
   document.body.append(loading)
   const visibility = (shown: boolean, initial = false) =>
@@ -87,7 +87,7 @@ async function start() {
       if (drawn) notice(error)
       else {
         const delay = backoffDelay(++readFailures)
-        showError('Could not load the board. ' + String(error) + ' Trying again ' + retryLabel(delay) + '.')
+        showError(`无法加载看板。${retryLabel(delay)}重试。详情：${String(error)}`)
         retryTimer = setTimeout(() => void run(true), delay)
       }
     } finally {
