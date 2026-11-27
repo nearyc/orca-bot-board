@@ -2,7 +2,7 @@ import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { delimiter, join } from 'node:path'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { binaryPath } from '../src/worker/cli'
+import { binaryPath, runCli } from '../src/worker/cli'
 import { retry } from '../src/worker/polling'
 
 let root: string
@@ -53,6 +53,26 @@ it('uses an explicitly configured executable ahead of PATH', async () => {
   vi.stubEnv('PATH', first)
   expect(await binaryPath('orca', custom)).toBe(custom)
   await expect(binaryPath('orca', join(root, name))).rejects.toThrow('找不到')
+})
+
+it.skipIf(process.platform !== 'win32')(
+  'passes the Windows Roaming directory to Orca when the worker lacks APPDATA',
+  async () => {
+    const expected = process.env.APPDATA
+    expect(expected).toBeTruthy()
+    vi.stubEnv('APPDATA', undefined)
+    const result = await runCli('orca', ['-p', 'process.env.APPDATA ?? "missing"'], process.execPath, 'text')
+    expect(result.ok && result.value).toEqual(expect.any(String))
+    if (result.ok) expect(String(result.value).trim()).toBe(expected)
+    expect(process.env.APPDATA).toBeUndefined()
+  },
+)
+
+it.skipIf(process.platform !== 'win32')('keeps APPDATA when already present', async () => {
+  vi.stubEnv('APPDATA', root)
+  const result = await runCli('orca', ['-p', 'process.env.APPDATA ?? "missing"'], process.execPath, 'text')
+  if (!result.ok) throw Error(result.message)
+  expect(String(result.value).trim()).toBe(root)
 })
 
 it('uses the structured missing-CLI failure kind when rendering the retry banner', () => {

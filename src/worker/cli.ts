@@ -21,6 +21,42 @@ class MissingExecutable extends Error {}
 // A leading slash alone still depends on the worker's current drive on Windows.
 const hasWindowsDrive = (path: string) => /^[a-z]:[\\/]/i.test(path)
 
+let roamingAppData: Promise<string> | undefined
+
+async function resolveRoamingAppData(env: NodeJS.ProcessEnv) {
+  const systemRoot = Object.entries(env).find(([key]) => key.toUpperCase() === 'SYSTEMROOT')?.[1]
+  if (!systemRoot || !hasWindowsDrive(systemRoot)) throw Error('无法定位 Windows 系统目录。')
+  const { stdout } = await execute(
+    join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
+    [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); [Environment]::GetFolderPath('ApplicationData')",
+    ],
+    { env, timeout: 5000, windowsHide: true },
+  )
+  const folder = stdout.trim()
+  if (!hasWindowsDrive(folder) && !/^\\\\[^\\/]+\\[^\\/]+/.test(folder))
+    throw Error('无法定位当前 Windows 用户的 AppData 目录。')
+  return folder
+}
+
+async function setWindowsAppData(env: NodeJS.ProcessEnv) {
+  if (process.platform !== 'win32') return
+  const keys = Object.keys(env).filter((key) => key.toUpperCase() === 'APPDATA')
+  const existing = keys.map((key) => env[key]).find(Boolean)
+  // Orca workers omit APPDATA. Query the Windows known folder to honor redirected profiles.
+  const folder =
+    existing ??
+    (await (roamingAppData ??= resolveRoamingAppData(env).catch((error: unknown) => {
+      roamingAppData = undefined
+      throw error
+    })))
+  for (const key of keys) delete env[key]
+  env.APPDATA = folder
+}
+
 export async function binaryPath(binary: Binary, configured: string): Promise<string> {
   const windows = process.platform === 'win32'
   const config = process.env.XDG_CONFIG_HOME || join(homedir(), '.config')
@@ -70,6 +106,7 @@ export async function runCli(
   }
   try {
     const path = await binaryPath(binary, configured)
+    await setWindowsAppData(env)
     const { stdout } = await execute(path, headers ? [args[0]!, '-i', ...args.slice(1)] : args, {
       env,
       timeout: timeoutSeconds * 1000,
